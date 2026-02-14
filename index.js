@@ -341,6 +341,8 @@ function postprocess(messages, filename) {
   const tpl = fs.readFileSync(filename).toString();
 
   return messages.reduce((memo, it) => memo.concat(it.map(chunk => {
+    if (!chunk.source) return chunk;
+
     const left = chunk.source.substr(0, chunk.column - 1);
     const matches = chunk.message.match(/'([$\w]+?)'/);
 
