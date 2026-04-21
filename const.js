@@ -5,6 +5,7 @@ const RE_CODING_BLOCKS = /<(script|style)([^<>]*?)>([^]*?)<\/\1>/g;
 const RE_DIRECTIVE_TAGS = /\{@(raw|html|debug|render) /g;
 const RE_DIRECTIVE_CONST = /\{@const /g;
 const RE_MATCH_QUOTED = /(["'])(\w+)\1/;
+const RE_SIGNAL_REF = /(?<!\$)\$(\w+)/g;
 const RE_STYLE_ATTRS = /(?<=<\w[^]*\s)style:(\w+)(?=[\s>])/g;
 const RE_CLASS_ATTRS = /(?<=<\w[^]*\s)class:(\w+)(?=[\s>])/g;
 const RE_BIND_ATTRS = /(?<=<\w[^]*\s)bind:(\w+)(?=[\s>])/g;
@@ -51,6 +52,7 @@ module.exports = {
   RE_COMMENT_BLOCKS,
   RE_CODING_BLOCKS,
   RE_MATCH_QUOTED,
+  RE_SIGNAL_REF,
   RE_KEYWORD_NAMES,
   RE_DIRECTIVE_TAGS,
   RE_DIRECTIVE_CONST,

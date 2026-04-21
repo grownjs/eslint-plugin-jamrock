@@ -21,6 +21,7 @@ const {
   RE_ALL_SEMI,
   RE_FIX_SEMI,
   RE_FIX_SPREAD,
+  RE_SIGNAL_REF,
   RE_STYLE_ATTRS,
   RE_CLASS_ATTRS,
   RE_BIND_ATTRS,
@@ -50,7 +51,7 @@ function preprocess(text) {
         /* istanbul ignore else */
         if (info.awaits.includes(offset)) return '/* */';
         return _;
-      });
+      }).replace(RE_SIGNAL_REF, ($0, name) => (name in info.locals ? `${name}\t` : $0));
 
       /* istanbul ignore else */
       if (RE_CONTEXT_MODULE.test(attr)) {
@@ -109,10 +110,12 @@ function preprocess(text) {
     .replace(RE_DIRECTIVE_CONST, '{   var ')
     .replace(RE_DIRECTIVE_TAGS, '{$1_:');
   buffer = buffer.replace(RE_FIX_SPREAD, ':{   ');
+  buffer = buffer.replace(RE_SIGNAL_REF, ' $1');
 
   const globals = disable('let $$props;', [
     'one-var-declaration-per-line',
     'no-unused-vars',
+    '@typescript-eslint/no-unused-vars',
     'semi-spacing',
     'max-len',
     'one-var',
@@ -218,6 +221,8 @@ function preprocess(text) {
           'semi',
           'semi-spacing',
           'no-unused-expressions',
+          'no-unused-vars',
+          '@typescript-eslint/no-unused-vars',
         ], true)}</script>`;
       }
 
@@ -236,6 +241,7 @@ function preprocess(text) {
         'no-void',
         'semi-spacing',
         'no-unused-vars',
+        '@typescript-eslint/no-unused-vars',
         'no-unused-expressions',
         'one-var-declaration-per-line',
       ])}${text.substr(diff)}`;
@@ -330,8 +336,12 @@ function preprocess(text) {
       'semi',
       'semi-spacing',
       'no-unused-expressions',
+      'no-unused-vars',
+      '@typescript-eslint/no-unused-vars',
     ], true)}</script>`);
   }
+
+  text = text.replace(RE_SIGNAL_REF, ' $1');
 
   return [text, ...chunks.filter(x => !x.names)
     .map(x => x.code.replace('<script>', () => `<script>${globals}`))];
@@ -356,12 +366,14 @@ function postprocess(messages, filename) {
     if ((chunk.ruleId === null && !chunk.message.includes('eslint-disable'))
       || chunk.ruleId === 'no-undef'
       || chunk.ruleId === 'no-unused-vars'
+      || chunk.ruleId === '@typescript-eslint/no-unused-vars'
       || chunk.ruleId === 'comma-spacing'
     ) {
       /* istanbul ignore else */
       if (RE_BLOCK_MARK.test(chunk.source)) {
         const diff = (left.split(RE_BLOCK_MARK).length - 1) * 8;
-        const temp = chunk.ruleId === 'no-unused-vars' && left.includes(';let ') ? 1 : 0;
+        const isNoUnusedVars = chunk.ruleId === 'no-unused-vars' || chunk.ruleId === '@typescript-eslint/no-unused-vars';
+        const temp = isNoUnusedVars && left.includes(';let ') ? 1 : 0;
 
         if (chunk.fatal) {
           chunk.column -= diff + temp;

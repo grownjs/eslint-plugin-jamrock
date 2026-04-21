@@ -258,8 +258,10 @@ function blocks(chunk, notags) {
 
       /* istanbul ignore else */
       if (!WELL_KNOWN_SYMBOLS.includes(local[0])) {
+        const name = local[0].charAt(0) === '$' ? local[0].slice(1) : local[0];
+
         locals.push({
-          name: local[0],
+          name,
           offset: [local.index + offset, local[0].length],
           position: offsets[local.index],
         });
